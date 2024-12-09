@@ -1,8 +1,26 @@
 import pygame, sys
 import spritesheet
-class Fruit():
+class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r boring
     def __init__(self):
-        self.pos = [500,500]
+        super().__init__()
+        self.pos = [500,200]
+        self.image = pygame.image.load('apple.png')
+        self.image = pygame.transform.scale(self.image, (self.image.get_width() * 0.15, self.image.get_height() * 0.15))
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.velocity = 10
+        self.hitbox = pygame.Rect(self.pos[0], self.pos[1], 32, 36)
+
+    def get_hitbox(self):
+        return self.hitbox
+    
+    def check_collision(self, collide):
+        if collide:
+            print('kms')
+            self.hitbox = pygame.Rect(10000, 10000, 32, 36) #is this a stupid way to do things
+            self.kill()
+    
+
+
 
         
 class Player(pygame.sprite.Sprite):
@@ -33,7 +51,9 @@ class Player(pygame.sprite.Sprite):
         self.image = self.idle_image
         self.rect = self.image.get_rect(topleft=self.pos)
 
-        self.hitbox = (self.pos[0] + 100 - (37/2), self.pos[1] + 100 - (52/2), 37, 52)
+        self.hitbox = pygame.Rect(self.pos[0] + 100 - (37/2), self.pos[1] + 100 - (52/2), 37, 52)
+
+        self.hp = 100
 
     def run(self):
         if not self.attack_animation:
@@ -68,12 +88,12 @@ class Player(pygame.sprite.Sprite):
             self.run_animation = any(keys[key] for key in (pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_w)) #if wasd pressed animation=true
         else:
             player.attack()
-        self.hitbox = (self.pos[0] + 100 - (37/2), self.pos[1] + 100 - (52/2), 37, 52)
+        self.hitbox = pygame.Rect(self.pos[0] + 100 - (37/2), self.pos[1] + 100 - (52/2), 37, 52)
 
     def flip_sprites(self): #flips all images
-        self.run_sprites = [pygame.transform.flip(sprite, True, False) for sprite in self.run_sprites]
-        self.attack_sprites = [pygame.transform.flip(sprite, True, False) for sprite in self.attack_sprites]
-        self.idle_image = pygame.transform.flip(self.idle_image, True, False)
+        self.run_sprites = [pygame.transform.flip(sprite, True, False).convert_alpha() for sprite in self.run_sprites]
+        self.attack_sprites = [pygame.transform.flip(sprite, True, False).convert_alpha() for sprite in self.attack_sprites]
+        self.idle_image = pygame.transform.flip(self.idle_image, True, False).convert_alpha()
 
     def update(self, speed):
         if self.run_animation:
@@ -93,6 +113,15 @@ class Player(pygame.sprite.Sprite):
 
     def get_hitbox(self):
         return self.hitbox
+    
+    def check_collision(self, collide):
+        if collide:
+            self.hp -= 15
+            player.check_death()
+
+    def check_death(self):
+        if self.hp < 0:
+            print("you died") #finish later
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -103,7 +132,9 @@ pygame.display.set_caption("fruit ninja")
 # Creating the sprites and groups
 moving_sprites = pygame.sprite.Group()
 player = Player()
+fruit = Fruit()
 moving_sprites.add(player)
+moving_sprites.add(fruit)
 
 #game loop
 game_loop = True
@@ -116,11 +147,15 @@ while game_loop:
             if event.key == pygame.K_SPACE:
                 player.attack()
 
+    collide = player.get_hitbox().colliderect(fruit.get_hitbox())
+    fruit.check_collision(collide)
+
     player.move()
     
     #draw
     screen.fill((0, 0, 0))
-    pygame.draw.rect(screen, (255,0,0), player.get_hitbox(),2)
+    pygame.draw.rect(screen, (255,0,0), player.get_hitbox(),2) #temp drawing hitbox
+    pygame.draw.rect(screen, (0,255,0), fruit.get_hitbox(), 2)
     moving_sprites.draw(screen)
     moving_sprites.update(0.25)
     pygame.display.flip()
