@@ -1,42 +1,78 @@
 import pygame, sys
+import spritesheet
+class Fruit():
+    def __init__(self):
+        self.pos = [500,500]
 
+        
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.pos = [100, 100]
-        self.run_sprites = [pygame.image.load(f'run_{i}.png') for i in range(1, 9)]#sprites for run animation
+        
+        # self.run_sprites = [pygame.image.load(f'run_{i}.png') for i in range(1, 9)]#sprites for run animation
+        # self.attack_sprites = [pygame.image.load(f'attack_{i}.png') for i in range(1,6)]
+
+        run_spritesheet_image = pygame.image.load('run_spritesheet.png')
+        run_spritesheet = spritesheet.SpriteSheet(run_spritesheet_image)
+        self.run_sprites = []
+        for i in range(8):
+            self.run_sprites.append(run_spritesheet.get_image(i, 200, 200, 1, (0, 0, 0)))
+
+        attack_spritesheet_image = pygame.image.load('attack_spritesheet.png')
+        attack_spritesheet = spritesheet.SpriteSheet(attack_spritesheet_image)
+        self.attack_sprites = []
+        for i in range(5):
+            self.attack_sprites.append(attack_spritesheet.get_image(i, 200, 200, 1, (0, 0, 0)))
+
         self.idle_image = pygame.image.load('idle.png')
         self.current_sprite = 0
         self.run_animation = False
+        self.attack_animation = False
         self.facing_right = True
         self.image = self.idle_image
         self.rect = self.image.get_rect(topleft=self.pos)
 
+        self.hitbox = (self.pos[0] + 100 - (37/2), self.pos[1] + 100 - (52/2), 37, 52)
+
     def run(self):
-        self.run_animation = True
-
+        if not self.attack_animation:
+            self.run_animation = True
+    
+    def attack(self):
+        self.attack_animation = True
+        self.run_animation = False
+    
     def move(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]: 
-            self.pos[0] -= 5
-            if self.facing_right: 
-                self.facing_right = False
-                self.flip_sprites()
-        if keys[pygame.K_d]: 
-            self.pos[0] += 5
-            if not self.facing_right:
-                self.facing_right = True
-                self.flip_sprites()
-        if keys[pygame.K_s]:
-            self.pos[1] += 5
-        if keys[pygame.K_w]:
-            self.pos[1] -= 5
+        if not self.attack_animation:
+            keys = pygame.key.get_pressed()
+            if not keys[pygame.K_SPACE]:
+                if keys[pygame.K_a]: 
+                    self.pos[0] -= 5
+                    if self.facing_right: 
+                        self.facing_right = False
+                        self.flip_sprites()
+                if keys[pygame.K_d]: 
+                    self.pos[0] += 5
+                    if not self.facing_right:
+                        self.facing_right = True
+                        self.flip_sprites()
+                if keys[pygame.K_s]:
+                    self.pos[1] += 5
+                if keys[pygame.K_w]:
+                    self.pos[1] -= 5
+            else:
+                player.attack()
 
-        self.rect.topleft = self.pos
-        self.run_animation = any(keys[key] for key in (pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_w)) #if wasd pressed animation=true
+            self.rect.topleft = self.pos
+            self.run_animation = any(keys[key] for key in (pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_w)) #if wasd pressed animation=true
+        else:
+            player.attack()
+        self.hitbox = (self.pos[0] + 100 - (37/2), self.pos[1] + 100 - (52/2), 37, 52)
 
     def flip_sprites(self): #flips all images
         self.run_sprites = [pygame.transform.flip(sprite, True, False) for sprite in self.run_sprites]
+        self.attack_sprites = [pygame.transform.flip(sprite, True, False) for sprite in self.attack_sprites]
         self.idle_image = pygame.transform.flip(self.idle_image, True, False)
 
     def update(self, speed):
@@ -45,14 +81,24 @@ class Player(pygame.sprite.Sprite):
             if int(self.current_sprite) >= len(self.run_sprites):
                 self.current_sprite = 0
             self.image = self.run_sprites[int(self.current_sprite)]
+        elif self.attack_animation:
+            speed = 0.125
+            self.current_sprite += speed
+            if int(self.current_sprite) >= len(self.attack_sprites):
+                self.current_sprite = 0
+                self.attack_animation = False
+            self.image = self.attack_sprites[int(self.current_sprite)]
         else:
             self.image = self.idle_image
+
+    def get_hitbox(self):
+        return self.hitbox
 
 pygame.init()
 clock = pygame.time.Clock()
 screen_width, screen_height = 1200, 600
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("game animation test")
+pygame.display.set_caption("fruit ninja")
 
 # Creating the sprites and groups
 moving_sprites = pygame.sprite.Group()
@@ -66,12 +112,19 @@ while game_loop:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.attack()
 
     player.move()
-
+    
     #draw
     screen.fill((0, 0, 0))
+    pygame.draw.rect(screen, (255,0,0), player.get_hitbox(),2)
     moving_sprites.draw(screen)
     moving_sprites.update(0.25)
     pygame.display.flip()
     clock.tick(60)
+
+    
+    
