@@ -19,7 +19,22 @@ class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r b
             self.hitbox = pygame.Rect(10000, 10000, 32, 36) #is this a stupid way to do things
             self.kill()
     
+class Slash():
+    def __init__(self, x, y):
+        
+        super().__init__()
+        self.pos = [x,y]
+        self.facing_right = True
+        self.hitbox = pygame.Rect(self.pos[0] + 100, self.pos[1] + 55, 80, 70)
 
+        self.initial = pygame.time.get_ticks()
+        self.slash_active = True
+    
+    def get_hitbox(self):
+        return self.hitbox
+    
+    def active_slash(self):
+        return self.slash_active
 
 
         
@@ -40,8 +55,8 @@ class Player(pygame.sprite.Sprite):
         attack_spritesheet_image = pygame.image.load('attack_spritesheet.png')
         attack_spritesheet = spritesheet.SpriteSheet(attack_spritesheet_image)
         self.attack_sprites = []
-        for i in range(5):
-            self.attack_sprites.append(attack_spritesheet.get_image(i, 200, 200, 1, (0, 0, 0)))
+        for i in range(3):
+            self.attack_sprites.append(attack_spritesheet.get_image(i+2, 200, 200, 1, (0, 0, 0)))
 
         self.idle_image = pygame.image.load('idle.png')
         self.current_sprite = 0
@@ -60,6 +75,7 @@ class Player(pygame.sprite.Sprite):
             self.run_animation = True
     
     def attack(self):
+        global slash
         self.attack_animation = True
         self.run_animation = False
     
@@ -110,9 +126,16 @@ class Player(pygame.sprite.Sprite):
             self.image = self.attack_sprites[int(self.current_sprite)]
         else:
             self.image = self.idle_image
+            self.current_sprite = 0
 
     def get_hitbox(self):
         return self.hitbox
+    
+    def get_attack_anim(self):
+        return self.attack_animation
+    
+    def get_pos(self):
+        return self.pos
     
     def check_collision(self, collide):
         if collide:
@@ -133,9 +156,11 @@ pygame.display.set_caption("fruit ninja")
 moving_sprites = pygame.sprite.Group()
 player = Player()
 fruit = Fruit()
+slash = Slash(90000, 90000)
 moving_sprites.add(player)
 moving_sprites.add(fruit)
 
+ticks_counter = []
 #game loop
 game_loop = True
 while game_loop:
@@ -146,16 +171,29 @@ while game_loop:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 player.attack()
+                ticks_counter.clear()
 
-    collide = player.get_hitbox().colliderect(fruit.get_hitbox())
-    fruit.check_collision(collide)
+    collide_fp = player.get_hitbox().colliderect(fruit.get_hitbox())
+    fruit.check_collision(collide_fp)
+    player.check_collision(collide_fp)
+
+    collide_fa = slash.get_hitbox().colliderect(fruit.get_hitbox())
+    fruit.check_collision(collide_fa)
 
     player.move()
-    
+
+    if(player.get_attack_anim()):
+        print("yo")
+        ticks_counter.append(pygame.time.get_ticks())
+        if ticks_counter[len(ticks_counter) - 1] - ticks_counter[0] >= 200:
+            print("cuh")
+            slash = Slash(player.get_pos()[0], player.get_pos()[1])
+
     #draw
     screen.fill((0, 0, 0))
-    pygame.draw.rect(screen, (255,0,0), player.get_hitbox(),2) #temp drawing hitbox
-    pygame.draw.rect(screen, (0,255,0), fruit.get_hitbox(), 2)
+    # pygame.draw.rect(screen, (255,0,0), player.get_hitbox(),2) #temp drawing hitbox
+    # pygame.draw.rect(screen, (0,255,0), fruit.get_hitbox(), 2)
+    # pygame.draw.rect(screen, (0,0,255), slash.get_hitbox(), 2)
     moving_sprites.draw(screen)
     moving_sprites.update(0.25)
     pygame.display.flip()
