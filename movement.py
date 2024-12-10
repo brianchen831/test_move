@@ -15,26 +15,29 @@ class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r b
     
     def check_collision(self, collide):
         if collide:
-            print('kms')
             self.hitbox = pygame.Rect(10000, 10000, 32, 36) #is this a stupid way to do things
             self.kill()
     
 class Slash():
-    def __init__(self, x, y):
+    def __init__(self, x, y, face_right):
         
         super().__init__()
         self.pos = [x,y]
-        self.facing_right = True
-        self.hitbox = pygame.Rect(self.pos[0] + 100, self.pos[1] + 55, 80, 70)
+        self.facing_right = face_right
+        if self.facing_right:
+            self.hitbox = pygame.Rect(self.pos[0] + 100, self.pos[1] + 55, 90, 70)
+        else:
+            self.hitbox = pygame.Rect(self.pos[0] + 10, self.pos[1] + 55, 90, 70)
 
         self.initial = pygame.time.get_ticks()
-        self.slash_active = True
     
     def get_hitbox(self):
         return self.hitbox
     
-    def active_slash(self):
-        return self.slash_active
+    def set_pos(self, x, y):
+        self.pos = [x, y]
+        self.hitbox = pygame.Rect(self.pos[0] + 100, self.pos[1] + 55, 90, 70)
+        
 
 
         
@@ -137,6 +140,9 @@ class Player(pygame.sprite.Sprite):
     def get_pos(self):
         return self.pos
     
+    def get_facing_right(self):
+        return self.facing_right
+    
     def check_collision(self, collide):
         if collide:
             self.hp -= 15
@@ -156,7 +162,7 @@ pygame.display.set_caption("fruit ninja")
 moving_sprites = pygame.sprite.Group()
 player = Player()
 fruit = Fruit()
-slash = Slash(90000, 90000)
+slash = Slash(90000, 90000, True)
 moving_sprites.add(player)
 moving_sprites.add(fruit)
 
@@ -183,17 +189,17 @@ while game_loop:
     player.move()
 
     if(player.get_attack_anim()):
-        print("yo")
         ticks_counter.append(pygame.time.get_ticks())
         if ticks_counter[len(ticks_counter) - 1] - ticks_counter[0] >= 200:
-            print("cuh")
-            slash = Slash(player.get_pos()[0], player.get_pos()[1])
+            slash = Slash(player.get_pos()[0], player.get_pos()[1], player.get_facing_right())
+    else:
+        slash.set_pos(90000, 90000)
 
     #draw
     screen.fill((0, 0, 0))
-    # pygame.draw.rect(screen, (255,0,0), player.get_hitbox(),2) #temp drawing hitbox
-    # pygame.draw.rect(screen, (0,255,0), fruit.get_hitbox(), 2)
-    # pygame.draw.rect(screen, (0,0,255), slash.get_hitbox(), 2)
+    pygame.draw.rect(screen, (255,0,0), player.get_hitbox(),2) #temp drawing hitbox
+    pygame.draw.rect(screen, (0,255,0), fruit.get_hitbox(), 2)
+    pygame.draw.rect(screen, (0,0,255), slash.get_hitbox(), 2)
     moving_sprites.draw(screen)
     moving_sprites.update(0.25)
     pygame.display.flip()
