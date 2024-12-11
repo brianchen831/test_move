@@ -226,7 +226,7 @@ while game_loop:
         fruit.check_collision(collide_fp)
         player_group.sprites()[0].check_collision(collide_fp)
 
-    if (player.get_attack_anim()):
+    if (player_group.sprites()[0].get_attack_anim()):
         for fruit in moving_sprites.sprites():
             collide_fa = slash.get_hitbox().colliderect(fruit.get_hitbox())
             fruit.check_collision(collide_fa)
