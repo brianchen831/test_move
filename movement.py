@@ -7,7 +7,11 @@ import math
 class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r boring
     def __init__(self):
         super().__init__()
-        self.pos = [500,200]
+        temp = random.randint(1, 2)
+        if temp == 1:
+            self.pos = [random.randint(20,1180), 20]
+        else:
+            self.pos = [20, random.randint(20, 780)]
         self.image = pygame.image.load('apple.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (self.image.get_width() * 0.15, self.image.get_height() * 0.15))
         self.rect = self.image.get_rect(topleft=self.pos)
@@ -92,10 +96,6 @@ class Player(pygame.sprite.Sprite):
         self.hitbox = pygame.Rect(self.pos[0] + 102 - (37/2), self.pos[1] + 102 - (52/2), 35, 50)
 
         self.hp = 100
-
-    # def run(self):
-    #     if not self.attack_animation:
-    #         self.run_animation = True
     
     def attack(self):
         global slash
@@ -103,42 +103,39 @@ class Player(pygame.sprite.Sprite):
         self.run_animation = False
     
     def move(self):
-        if not self.attack_animation:
-            keys = pygame.key.get_pressed()
-            if not keys[pygame.K_SPACE]:
-                if keys[pygame.K_a]: 
-                    self.pos[0] -= 5
-                    self.rect.x -= 5
-                    if self.facing_right: 
-                        self.facing_right = False
-                        self.flip_sprites()
-                if keys[pygame.K_d]: 
-                    self.pos[0] += 5
-                    self.rect.x += 5
-                    if not self.facing_right:
-                        self.facing_right = True
-                        self.flip_sprites()
-                if keys[pygame.K_s]:
-                    self.pos[1] += 5
-                    self.rect.y += 5
-                if keys[pygame.K_w]:
-                    self.pos[1] -= 5
-                    self.rect.y -= 5
-            else:
-                self.attack()
-                ticks_counter.clear()
-            
-            self.rect.topleft = self.pos
-            self.run_animation = any(keys[key] for key in (pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_w)) #if wasd pressed animation=true
-            if (self.run_animation):
-                self.attack_animation = False
-            
+        #if not self.attack_animation:
+        keys = pygame.key.get_pressed()
+        if not keys[pygame.K_SPACE]:
+            if keys[pygame.K_a]: 
+                self.pos[0] -= 5
+                self.rect.x -= 5
+                if self.facing_right: 
+                    self.facing_right = False
+                    self.flip_sprites()
+            if keys[pygame.K_d]: 
+                self.pos[0] += 5
+                self.rect.x += 5
+                if not self.facing_right:
+                    self.facing_right = True
+                    self.flip_sprites()
+            if keys[pygame.K_s]:
+                self.pos[1] += 5
+                self.rect.y += 5
+            if keys[pygame.K_w]:
+                self.pos[1] -= 5
+                self.rect.y -= 5
         else:
             self.attack()
+        self.rect.topleft = self.pos
+        self.run_animation = any(keys[key] for key in (pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_w)) #if wasd pressed animation=true
+        if (self.run_animation):
+            self.attack_animation = False
+        #else:
+        #    self.attack()
         
         self.hitbox = pygame.Rect(self.rect.x + 100 - (37/2), self.rect.y + 100 - (52/2), 37, 52)
         
-
+    #im gonna make it so that if you are attacking it disables reading keyboard inputs
 
     def flip_sprites(self): #flips all images
         self.run_sprites = [pygame.transform.flip(sprite, True, False).convert_alpha() for sprite in self.run_sprites]
@@ -206,7 +203,7 @@ moving_sprites.add(Fruit())
 
 # Timer 
 apple_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(apple_timer,8000)
+pygame.time.set_timer(apple_timer,1000)
 
 ticks_counter = []
 #game loop
@@ -216,10 +213,10 @@ while game_loop:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == pygame.KEYDOWN:
+
+        if event.type == pygame.KEYDOWN and player.get_attack_anim() == False:
             if event.key == pygame.K_SPACE:
                 player.attack()
-                ticks_counter.clear()
 
         if event.type == apple_timer:
             moving_sprites.add(Fruit())
@@ -241,7 +238,7 @@ while game_loop:
             slash = Slash(player_group.sprites()[0].get_pos()[0], player_group.sprites()[0].get_pos()[1], player_group.sprites()[0].get_facing_right())
     else:
         slash.set_pos(90000, 90000)
-    
+        ticks_counter.clear()
     #draw
     screen.fill((0, 0, 0))
 
@@ -259,7 +256,4 @@ while game_loop:
         pygame.draw.rect(screen, (12, 155, 0), a.get_hitbox(), 3)
 
     pygame.display.update()
-    clock.tick(30)
-
-    
-    
+    clock.tick(60)
