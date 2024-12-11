@@ -69,6 +69,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.pos = [100, 100]
+        self.score = 0
         
         # self.run_sprites = [pygame.image.load(f'run_{i}.png') for i in range(1, 9)]#sprites for run animation
         # self.attack_sprites = [pygame.image.load(f'attack_{i}.png') for i in range(1,6)]
@@ -181,12 +182,17 @@ class Player(pygame.sprite.Sprite):
             print ('hit by fruit')
 
     def check_death(self):
+        global game_active
         if self.hp < 0:
+            game_active = False
+            moving_sprites.empty()
             print("you died") #finish later
 
 
 pygame.init()
 clock = pygame.time.Clock()
+test_font = pygame.font.Font('font/Pixeltype.ttf', 50)
+game_active = False
 screen_width, screen_height = 1200, 600
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("fruit ninja")
@@ -200,60 +206,84 @@ moving_sprites = pygame.sprite.Group()
 slash = Slash(90000, 90000, True)
 moving_sprites.add(Fruit())
 
+# Start screen
+game_name = test_font.render('Apple Ninja',False,(111,196,169))
+game_name_rect = game_name.get_rect(center = (400,80))
+
+game_message = test_font.render('Press space to run',False,(111,196,169))
+game_message_rect = game_message.get_rect(center = (400,330))
+
 
 # Timer 
 apple_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(apple_timer,1000)
+pygame.time.set_timer(apple_timer,2000)
 
 ticks_counter = []
 #game loop
-game_loop = True
-while game_loop:
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        if event.type == pygame.KEYDOWN and player.get_attack_anim() == False:
-            if event.key == pygame.K_SPACE:
-                player.attack()
+        if game_active:
+            if event.type == apple_timer:
+                moving_sprites.add(Fruit())
+        else:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    game_active = True
+                    player_group.sprites()[0].hp = 100
 
-        if event.type == apple_timer:
-            moving_sprites.add(Fruit())
 
-    for fruit in moving_sprites.sprites():
-        collide_fp = player_group.sprites()[0].get_hitbox().colliderect(fruit.get_hitbox())
-        fruit.check_collision(collide_fp)
-        player_group.sprites()[0].check_collision(collide_fp)
-
-    if (player_group.sprites()[0].get_attack_anim()):
+    if game_active:
         for fruit in moving_sprites.sprites():
-            collide_fa = slash.get_hitbox().colliderect(fruit.get_hitbox())
-            fruit.check_collision(collide_fa)
+            collide_fp = player_group.sprites()[0].get_hitbox().colliderect(fruit.get_hitbox())
+            fruit.check_collision(collide_fp)
+            player_group.sprites()[0].check_collision(collide_fp)
+
+        if (player_group.sprites()[0].get_attack_anim()):
+            for fruit in moving_sprites.sprites():
+                collide_fa = slash.get_hitbox().colliderect(fruit.get_hitbox())
+                if collide_fa:
+                    player.score += 5
+                fruit.check_collision(collide_fa)
 
 
-    if(player_group.sprites()[0].get_attack_anim()):
-        ticks_counter.append(pygame.time.get_ticks())
-        if ticks_counter[len(ticks_counter) - 1] - ticks_counter[0] >= 200:
-            slash = Slash(player_group.sprites()[0].get_pos()[0], player_group.sprites()[0].get_pos()[1], player_group.sprites()[0].get_facing_right())
+        if(player_group.sprites()[0].get_attack_anim()):
+            ticks_counter.append(pygame.time.get_ticks())
+            if ticks_counter[len(ticks_counter) - 1] - ticks_counter[0] >= 200:
+                slash = Slash(player_group.sprites()[0].get_pos()[0], player_group.sprites()[0].get_pos()[1], player_group.sprites()[0].get_facing_right())
+        else:
+            slash.set_pos(90000, 90000)
+            ticks_counter.clear()
+
+        #draw
+        screen.fill((0, 0, 0))
+
+        pygame.draw.rect(screen, (0,0,255), slash.get_hitbox(), 2)
+        for p in player_group.sprites():
+            pygame.draw.rect(screen, (111, 0, 80), p.get_hitbox(), 3)
+        
+        player_group.draw(screen)
+        player_group.update(0.25)
+
+        moving_sprites.draw(screen)
+        moving_sprites.update()
+        
+        for a in moving_sprites.sprites():
+            pygame.draw.rect(screen, (12, 155, 0), a.get_hitbox(), 3)
+
     else:
-        slash.set_pos(90000, 90000)
-        ticks_counter.clear()
-    #draw
-    screen.fill((0, 0, 0))
-
-    pygame.draw.rect(screen, (0,0,255), slash.get_hitbox(), 2)
-    for p in player_group.sprites():
-        pygame.draw.rect(screen, (111, 0, 80), p.get_hitbox(), 3)
-    
-    player_group.draw(screen)
-    player_group.update(0.25)
-
-    moving_sprites.draw(screen)
-    moving_sprites.update()
-    
-    for a in moving_sprites.sprites():
-        pygame.draw.rect(screen, (12, 155, 0), a.get_hitbox(), 3)
+        screen.fill(((94,129,162)))
+        score_message = test_font.render(f'Your score: {player.score}',False,(111,196,169))
+        score_message_rect = score_message.get_rect(center = (400,330))
+        screen.blit(game_name,game_name_rect)
+        
+        if player.score == 0 and player_group.sprites()[0].hp == 100: 
+            screen.blit(game_message,game_message_rect)
+        else: 
+            screen.blit(score_message,score_message_rect)
 
     pygame.display.update()
     clock.tick(60)
