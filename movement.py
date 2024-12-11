@@ -1,5 +1,8 @@
 import pygame, sys
 import spritesheet
+import random
+import math
+
 class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r boring
     def __init__(self):
         super().__init__()
@@ -7,8 +10,11 @@ class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r b
         self.image = pygame.image.load('apple.png')
         self.image = pygame.transform.scale(self.image, (self.image.get_width() * 0.15, self.image.get_height() * 0.15))
         self.rect = self.image.get_rect(topleft=self.pos)
-        self.velocity = 10
-        self.hitbox = pygame.Rect(self.pos[0], self.pos[1], 32, 36)
+        self.speed = 10
+        self.hitbox = pygame.Rect(self.pos[0] + 2, self.pos[1] + 2, 30, 34)
+        self.direction = random.randint(0,359)
+        self.speed_x = self.speed * math.cos(self.direction * math.pi / 180)
+        self.speed_y = self.speed * math.sin(self.direction * math.pi / 180)
 
     def get_hitbox(self):
         return self.hitbox
@@ -17,6 +23,17 @@ class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r b
         if collide:
             self.hitbox = pygame.Rect(10000, 10000, 32, 36) #is this a stupid way to do things
             self.kill()
+
+    def fruit_movement(self):
+        if self.pos[0] <= 0 or self.pos[0] >= 1200:
+            self.speed_x *= -1
+        if self.pos[1] <= 0 or self.pos[1] >= 800:
+            self.speed_y *= -1
+        
+        self.pos[0] += self.speed_x
+        self.pos[1] += self.speed_y
+        
+        print(self.pos)
     
 class Slash():
     def __init__(self, x, y, face_right):
@@ -37,10 +54,7 @@ class Slash():
     def set_pos(self, x, y):
         self.pos = [x, y]
         self.hitbox = pygame.Rect(self.pos[0] + 100, self.pos[1] + 55, 90, 70)
-        
-
-
-        
+    
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -69,13 +83,13 @@ class Player(pygame.sprite.Sprite):
         self.image = self.idle_image
         self.rect = self.image.get_rect(topleft=self.pos)
 
-        self.hitbox = pygame.Rect(self.pos[0] + 100 - (37/2), self.pos[1] + 100 - (52/2), 37, 52)
+        self.hitbox = pygame.Rect(self.pos[0] + 102 - (37/2), self.pos[1] + 102 - (52/2), 35, 50)
 
         self.hp = 100
 
-    def run(self):
-        if not self.attack_animation:
-            self.run_animation = True
+    # def run(self):
+    #     if not self.attack_animation:
+    #         self.run_animation = True
     
     def attack(self):
         global slash
@@ -102,10 +116,12 @@ class Player(pygame.sprite.Sprite):
                     self.pos[1] -= 5
             else:
                 player.attack()
+                ticks_counter.clear()
 
             self.rect.topleft = self.pos
             self.run_animation = any(keys[key] for key in (pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_w)) #if wasd pressed animation=true
         else:
+            self.run_animation = False
             player.attack()
         self.hitbox = pygame.Rect(self.pos[0] + 100 - (37/2), self.pos[1] + 100 - (52/2), 37, 52)
 
@@ -185,8 +201,9 @@ while game_loop:
 
     collide_fa = slash.get_hitbox().colliderect(fruit.get_hitbox())
     fruit.check_collision(collide_fa)
-
+    
     player.move()
+    fruit.fruit_movement()
 
     if(player.get_attack_anim()):
         ticks_counter.append(pygame.time.get_ticks())
