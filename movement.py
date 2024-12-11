@@ -12,7 +12,7 @@ class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r b
             self.pos = [random.randint(20,1180), 20]
         else:
             self.pos = [20, random.randint(20, 780)]
-        self.image = pygame.image.load('apple.png').convert_alpha()
+        self.image = pygame.image.load('graphics/apple.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (self.image.get_width() * 0.15, self.image.get_height() * 0.15))
         self.rect = self.image.get_rect(topleft=self.pos)
         self.speed = 5
@@ -73,19 +73,19 @@ class Player(pygame.sprite.Sprite):
         # self.run_sprites = [pygame.image.load(f'run_{i}.png') for i in range(1, 9)]#sprites for run animation
         # self.attack_sprites = [pygame.image.load(f'attack_{i}.png') for i in range(1,6)]
 
-        run_spritesheet_image = pygame.image.load('run_spritesheet.png')
+        run_spritesheet_image = pygame.image.load('graphics/run_spritesheet.png')
         run_spritesheet = spritesheet.SpriteSheet(run_spritesheet_image)
         self.run_sprites = []
         for i in range(8):
             self.run_sprites.append(run_spritesheet.get_image(i, 200, 200, 1, (0, 0, 0)))
 
-        attack_spritesheet_image = pygame.image.load('attack_spritesheet.png')
+        attack_spritesheet_image = pygame.image.load('graphics/attack_spritesheet.png')
         attack_spritesheet = spritesheet.SpriteSheet(attack_spritesheet_image)
         self.attack_sprites = []
         for i in range(3):
             self.attack_sprites.append(attack_spritesheet.get_image(i+2, 200, 200, 1, (0, 0, 0)))
 
-        self.idle_image = pygame.image.load('idle.png')
+        self.idle_image = pygame.image.load('graphics/idle.png')
         self.current_sprite = 0
         self.run_animation = False
         self.attack_animation = False
