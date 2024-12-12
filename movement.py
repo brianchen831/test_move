@@ -52,9 +52,9 @@ class Slash():
         self.pos = [x,y]
         self.facing_right = face_right
         if self.facing_right:
-            self.hitbox = pygame.Rect(self.pos[0] + 100, self.pos[1] + 55, 90, 70)
+            self.hitbox = pygame.Rect(self.pos[0] + 100, self.pos[1] + 55, 100, 70)
         else:
-            self.hitbox = pygame.Rect(self.pos[0] + 10, self.pos[1] + 55, 90, 70)
+            self.hitbox = pygame.Rect(self.pos[0], self.pos[1] + 55, 100, 70)
 
         self.initial = pygame.time.get_ticks()
     
@@ -94,7 +94,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.idle_image
         self.rect = self.image.get_rect(topleft=self.pos)
 
-        self.hitbox = pygame.Rect(self.pos[0] + 102 - (37/2), self.pos[1] + 102 - (52/2), 35, 50)
+        self.hitbox = pygame.Rect(self.pos[0] + 106 - (37/2), self.pos[1] + 106 - (52/2), 29, 46)
 
         self.hp = 100
     
@@ -134,7 +134,7 @@ class Player(pygame.sprite.Sprite):
         #else:
         #    self.attack()
         
-        self.hitbox = pygame.Rect(self.rect.x + 100 - (37/2), self.rect.y + 100 - (52/2), 37, 52)
+        self.hitbox = pygame.Rect(self.rect.x + 106 - (37/2), self.rect.y + 106 - (52/2), 29, 46)
         
     #im gonna make it so that if you are attacking it disables reading keyboard inputs
 
@@ -216,7 +216,7 @@ game_message_rect = game_message.get_rect(center = (400,330))
 
 # Timer 
 apple_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(apple_timer,2000)
+pygame.time.set_timer(apple_timer,1200)
 
 ticks_counter = []
 #game loop
@@ -261,9 +261,9 @@ while True:
         #draw
         screen.fill((0, 0, 0))
 
-        pygame.draw.rect(screen, (0,0,255), slash.get_hitbox(), 2)
-        for p in player_group.sprites():
-            pygame.draw.rect(screen, (111, 0, 80), p.get_hitbox(), 3)
+        # pygame.draw.rect(screen, (0,0,255), slash.get_hitbox(), 2)
+        # for p in player_group.sprites():
+        #     pygame.draw.rect(screen, (111, 0, 80), p.get_hitbox(), 3)
         
         player_group.draw(screen)
         player_group.update(0.25)
@@ -271,8 +271,8 @@ while True:
         moving_sprites.draw(screen)
         moving_sprites.update()
         
-        for a in moving_sprites.sprites():
-            pygame.draw.rect(screen, (12, 155, 0), a.get_hitbox(), 3)
+        # for a in moving_sprites.sprites():
+        #     pygame.draw.rect(screen, (12, 155, 0), a.get_hitbox(), 3)
 
     else:
         screen.fill(((94,129,162)))
