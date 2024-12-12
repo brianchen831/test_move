@@ -12,7 +12,13 @@ class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r b
             self.pos = [random.randint(20,1180), 20]
         else:
             self.pos = [20, random.randint(20, 780)]
-        self.image = pygame.image.load('graphics/apple.png').convert_alpha()
+        temp = random.randint(1,3)
+        if temp == 1:  
+            self.image = pygame.image.load('graphics/apple.png').convert_alpha()
+        elif temp == 2:
+            self.image = pygame.image.load('graphics/melon.png').convert_alpha()
+        else:
+            self.image = pygame.image.load('graphics/strawberry.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (self.image.get_width() * 0.15, self.image.get_height() * 0.15))
         self.rect = self.image.get_rect(topleft=self.pos)
         self.speed = 5
