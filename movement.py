@@ -5,20 +5,21 @@ import math
 
 
 class Fruit(pygame.sprite.Sprite): #might just do a boss run game cuz swarms r boring
-    def __init__(self):
+    def __init__(self, type):
         super().__init__()
         temp = random.randint(1, 2)
         if temp == 1:
             self.pos = [random.randint(20,1180), 20]
         else:
             self.pos = [20, random.randint(20, 780)]
-        temp = random.randint(1,3)
-        if temp == 1:  
+
+        if type == 'apple':  
             self.image = pygame.image.load('graphics/apple.png').convert_alpha()
-        elif temp == 2:
+        elif type == 'melon':
             self.image = pygame.image.load('graphics/melon.png').convert_alpha()
         else:
             self.image = pygame.image.load('graphics/strawberry.png').convert_alpha()
+
         self.image = pygame.transform.scale(self.image, (self.image.get_width() * 0.15, self.image.get_height() * 0.15))
         self.rect = self.image.get_rect(topleft=self.pos)
         self.speed = 5
@@ -210,15 +211,14 @@ player_group.add(Player())
 # Creating the sprites and groups
 moving_sprites = pygame.sprite.Group()
 slash = Slash(90000, 90000, True)
-moving_sprites.add(Fruit())
+moving_sprites.add(Fruit(random.choice(['apple','strawberry','melon','apple'])))
 
 # Start screen
-game_name = test_font.render('Apple Ninja',False,(111,196,169))
+game_name = test_font.render('Fruit Ninja',False,(111,196,169))
 game_name_rect = game_name.get_rect(center = (400,80))
 
-game_message = test_font.render('Press space to run',False,(111,196,169))
+game_message = test_font.render('Press R to start the game',False,(111,196,169))
 game_message_rect = game_message.get_rect(center = (400,330))
-
 
 # Timer 
 apple_timer = pygame.USEREVENT + 1
@@ -234,7 +234,7 @@ while True:
 
         if game_active:
             if event.type == apple_timer:
-                moving_sprites.add(Fruit())
+                moving_sprites.add(Fruit(random.choice(['apple','strawberry','melon','apple'])))
         else:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
